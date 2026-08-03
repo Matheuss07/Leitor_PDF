@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equatorial PDF -> Excel Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1>Equatorial PDF <span class="accent-text">-></span> Excel</h1>
+                    <p class="subtitle">Extração inteligente e automatizada de faturas de energia</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span class="status-badge" id="server-status">
+                    <span class="status-dot green"></span>
+                    Servidor Local Ativo
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <main class="app-content">
+            <!-- Left Panel: Controls and File Upload -->
+            <section class="control-panel">
+                <div class="card upload-card">
+                    <h2 class="card-title">1. Selecionar Arquivos</h2>
+                    <p class="card-desc">Arraste e solte ou selecione múltiplos PDFs de faturas da Equatorial.</p>
+                    
+                    <div class="drop-zone" id="drop-zone">
+                        <input type="file" id="file-input" multiple accept=".pdf" class="file-input">
+                        <div class="drop-zone-prompt">
+                            <div class="upload-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <span class="main-prompt">Arraste seus PDFs aqui</span>
+                            <span class="sub-prompt">ou clique para navegar no computador</span>
+                        </div>
+                    </div>
+
+                    <!-- Selected Files List -->
+                    <div class="file-list-container hide" id="file-list-container">
+                        <h3>Arquivos na fila (<span id="file-count">0</span>)</h3>
+                        <ul class="file-list" id="file-list"></ul>
+                        
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" id="btn-clear">Limpar Fila</button>
+                            <button class="btn btn-primary" id="btn-process">
+                                <span class="btn-text">Analisar Faturas</span>
+                                <span class="spinner hide" id="process-spinner"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log and Console Panel -->
+                <div class="card console-card">
+                    <h2 class="card-title">Console de Processamento</h2>
+                    <p class="card-desc">Logs e status de execução em tempo real.</p>
+                    <div class="console-box" id="console-box">
+                        <div class="console-line system">Aguardando envio de faturas...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Data Preview and Editor -->
+            <section class="preview-panel">
+                <div class="card data-card">
+                    <div class="data-card-header">
+                        <div>
+                            <h2 class="card-title">2. Visualização e Edição dos Dados</h2>
+                            <p class="card-desc">Dê um duplo clique em qualquer célula abaixo para corrigir manualmente os dados antes de exportar.</p>
+                        </div>
+                        <button class="btn btn-success" id="btn-export" type="button" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="btn-icon">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Baixar Excel
+                        </button>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+                            </svg>
+                        </div>
+                        <h3>Nenhum dado extraído</h3>
+                        <p>Carregue e processe faturas em PDF para visualizar e editar os dados aqui.</p>
+                    </div>
+
+                    <!-- Data Table Container -->
+                    <div class="table-container hide" id="table-container">
+                        <table class="data-table" id="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Arquivo</th>
+                                    <th>UC</th>
+                                    <th>Cliente</th>
+                                    <th>Medidor</th>
+                                    <th>Local</th>
+                                    <th>Referência</th>
+                                    <th>Vencimento</th>
+                                    <th>Classificação</th>
+                                    <th>Subclasse</th>
+                                    <th>Tipo de Fornecimento</th>
+                                    <th>Leitura Anterior</th>
+                                    <th>Leitura Atual</th>
+                                    <th>Consumo (kWh)</th>
+                                    <th>Total a Pagar</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Filas dinÃ¢micas inseridas por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
