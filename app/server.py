@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, render_template, send_file
 from werkzeug.utils import secure_filename
 from app.core import pdf_reader, extractor, excel_writer, invoice_processor
 
-# ConfiguraÃ§Ã£o de Logs
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s - %(message)s',
@@ -15,21 +15,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ConfiguraÃ§Ã£o do Flask
-# Como index.html estarÃ¡ em templates/ e js/css em static/, definimos as pastas corretas
+
+# Como index.html em templates/ e js/css em static/, definimos as pastas corretas
 app = Flask(
     __name__,
     template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
     static_folder=os.path.join(os.path.dirname(__file__), 'static')
 )
-app.config['SECRET_KEY'] = 'equatorial-excel-secret-key-123'
+app.config['SECRET_KEY'] = os.environ.get(
+    'SECRET_KEY',
+    'chave-local-desenvolvimento'
+)
 
-# Configura diretÃ³rio de uploads temporÃ¡rios
+
 UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'uploads'))
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Configura diretÃ³rio para arquivos Excel gerados
+
 EXCEL_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'export'))
 os.makedirs(EXCEL_FOLDER, exist_ok=True)
 app.config['EXCEL_FOLDER'] = EXCEL_FOLDER
