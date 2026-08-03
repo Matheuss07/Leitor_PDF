@@ -58,6 +58,7 @@ def process_invoice_pages(pages: list[str]) -> list[dict]:
         invoice_text = "\n".join(text for _, text in page_group)
         first_page = page_group[0][0]
         last_page = page_group[-1][0]
+
         logger.debug(
             "Invoice %s: pages=%s-%s; text length=%s characters.",
             invoice_number,
@@ -65,12 +66,23 @@ def process_invoice_pages(pages: list[str]) -> list[dict]:
             last_page,
             len(invoice_text),
         )
+
         logger.debug("===== RAW INVOICE %s =====\n%s", invoice_number, invoice_text)
+
         invoices.append(extractor.extract_fields(invoice_text))
 
-    # Do not deduplicate here.  Separate invoices may share a UC and reference
-    # month, and the contract is one extracted record per invoice in the PDF.
-    return invoices
+    # Remove duplicatas
+    unique = {}
+    for invoice in invoices:
+        key = (
+            invoice.get("uc"),
+            invoice.get("referencia")
+        )
+
+        if key not in unique:
+            unique[key] = invoice
+
+    return list(unique.values())
 
 
 def process_pdf_with_multiple_invoices(pdf_path: str) -> list[dict]:
